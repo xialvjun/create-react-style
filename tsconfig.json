@@ -1,13 +1,11 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "es5",
-    "outDir": "lib",
     "declaration": true,
     "jsx": "react",
-    "lib": [
-      "es2015",
-      "dom"
-    ],
+    "lib": ["dom", "es2015"],
+    "module": "es6",
+    "moduleResolution": "node",
+    "outDir": "lib",
+    "target": "es5"
   }
 }

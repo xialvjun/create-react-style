@@ -2,21 +2,23 @@
   "name": "@xialvjun/create-react-style",
   "version": "0.0.1",
   "description": "An easy way of css-in-js: render style tag in render-props.",
+  "author": "xialvjun@live.com",
+  "license": "MIT",
+  "repository": "github:xialvjun/create-react-style",
+  "files": ["src/", "lib/"],
   "main": "lib/index.js",
+  "-module": "es module for tree shaking",
+  "module": "lib/index.js",
+  "-esnext":
+    "A module ID with untranspiled code that is the primary entry point to your program.",
+  "-unpkg": "should be just one file",
+  "-jsdelivr": "should be just one file",
+  "types": "lib/index.d.ts",
   "scripts": {
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/xialvjun/create-react-style.git"
-  },
-  "keywords": [
-    "react",
-    "css-in-js"
-  ],
-  "author": "xialvjun@live.com",
-  "license": "MIT",
+  "keywords": ["react", "css-in-js"],
   "peerDependencies": {
     "react": "^16.3.2"
   },
@@ -29,7 +31,7 @@
   },
   "dependencies": {
     "@emotion/hash": "^0.6.3",
-    "@xialvjun/create-react-context": "^1.1.1",
+    "@xialvjun/create-react-context": "^1.1.2",
     "stylis": "^3.5.0"
   }
 }

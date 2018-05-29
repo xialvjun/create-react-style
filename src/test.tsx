@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { createStyle } from "./";
+import { createStyle } from "./index";
 
 const Style = createStyle();
 
