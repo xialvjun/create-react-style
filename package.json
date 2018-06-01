@@ -24,7 +24,7 @@
   "author": "xialvjun@live.com",
   "license": "MIT",
   "++++++++++++++++": "++++++++++++++++",
-  "files": ["src/", "es/", "lib/", "dist/", "types/"],
+  "files": ["src/", "es/", "lib/", "dist/", "types/", "macro.js"],
   "-esnext": "esnext_source_code_not_ts",
   "module": "es/index.js",
   "main": "lib/index.js",
