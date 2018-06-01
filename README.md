@@ -5,6 +5,9 @@ An easy way of css-in-js: render style tag in render-props.
 `npm i @xialvjun/create-react-style` or `yarn add @xialvjun/create-react-style`
 
 ## Example
+
+https://codesandbox.io/s/5w8wqonrpk
+
 ```jsx
 import { Style, createStyle } from '@xialvjun/create-react-style';
 import {
