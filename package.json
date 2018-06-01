@@ -1,24 +1,10 @@
 {
   "name": "@xialvjun/create-react-style",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "An easy way of css-in-js: render style tag in render-props.",
-  "author": "xialvjun@live.com",
-  "license": "MIT",
   "repository": "github:xialvjun/create-react-style",
-  "files": ["src/", "lib/"],
-  "main": "lib/index.js",
-  "-module": "es module for tree shaking",
-  "module": "lib/index.js",
-  "-esnext":
-    "A module ID with untranspiled code that is the primary entry point to your program.",
-  "-unpkg": "should be just one file",
-  "-jsdelivr": "should be just one file",
-  "types": "lib/index.d.ts",
-  "scripts": {
-    "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": ["react", "css-in-js"],
+  "keywords": ["react", "css-in-js", "ssr"],
+  "----------------": "----------------",
   "peerDependencies": {
     "react": "^16.3.2"
   },
@@ -27,11 +13,33 @@
     "babel-cli": "^6.26.0",
     "babel-plugin-macros": "^2.2.1",
     "babel-preset-react-app": "^3.1.1",
-    "typescript": "^2.8.3"
+    "rimraf": "^2.6.2",
+    "typescript": "^2.9.1"
   },
   "dependencies": {
     "@emotion/hash": "^0.6.3",
-    "@xialvjun/create-react-context": "^1.1.2",
     "stylis": "^3.5.0"
+  },
+  "================": "================",
+  "author": "xialvjun@live.com",
+  "license": "MIT",
+  "++++++++++++++++": "++++++++++++++++",
+  "files": ["src/", "es/", "lib/", "dist/", "types/"],
+  "-esnext": "esnext_source_code_not_ts",
+  "module": "es/index.js",
+  "main": "lib/index.js",
+  "-unpkg": "dist/index.js",
+  "-jsdelivr": "dist/index.js",
+  "types": "types/index.d.ts",
+  "################": "################",
+  "scripts": {
+    "build":
+      "npm run build:es && npm run build:lib && npm run build:dist && npm run build:types",
+    "build:es": "rimraf -r es && tsc --outDir es --module es6",
+    "build:lib": "rimraf -r lib && tsc --outDir lib --module commonjs",
+    "build:dist": "rimraf -r dist && echo not_implemented",
+    "build:types":
+      "rimraf -r types && tsc --outDir types --declaration --emitDeclarationOnly",
+    "test": "echo \"Error: no test specified\" && exit 1"
   }
 }

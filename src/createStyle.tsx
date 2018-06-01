@@ -1,65 +1,113 @@
 import * as stylis from "stylis";
-import hash from "@emotion/hash";
-import { createContext } from "@xialvjun/create-react-context";
 import * as React from "react";
 import { Fragment, Component, ReactNode, ComponentClass } from "react";
 
-/**
- * no care about global style, because stylis support
- * :global(
- * img {
- *   width: 100%;
- * }
- * )
- */
-function createStyle(
-  hash: (css: string) => string
-): ComponentClass<{ css: string; children: (className: string) => ReactNode }> {
-  const WhoRenderedStyle = createContext({
-    state: {},
-    set(key, value) {
-      this.state[key] = value;
-    },
-    get(key) {
-      return this.state[key];
-    },
-    del(key) {
-      delete this.state[key];
-      this.setState(null);
-    }
-  });
+export interface StyleProviderPropsType {
+  init_stylis_cache?: Record<
+    string,
+    { class_name: string; style_html: string }
+  >;
+  class_name_generator?: (css: string) => string;
+  children?: ReactNode;
+}
 
-  const cache = {};
-  function cache_stylis(css: string) {
-    if (!cache[css]) {
-      let className = "";
-      className = "s_" + hash(css);
-      cache[css] = { className, style_html: stylis("." + className, css) };
+export interface StyleProviderComponentClass
+  extends ComponentClass<StyleProviderPropsType> {
+  new (props: StyleProviderPropsType, context?: any): Component<
+    StyleProviderPropsType,
+    {}
+  > & {
+    stylis_cache: Record<string, { class_name: string; style_html: string }>;
+    stylis: (
+      css: string
+    ) => {
+      class_name: string;
+      style_html: string;
+    };
+    rendered_by: Record<string, string>;
+    set: (key: string, value: string) => void;
+    get: (key: string) => string;
+    del: (key: string) => void;
+  };
+}
+
+export interface StyleConsumerPropsType {
+  css: string;
+  children: (class_name: string) => React.ReactNode;
+}
+
+export function createStyle(): {
+  Provider: StyleProviderComponentClass;
+  Consumer: (props: StyleConsumerPropsType) => JSX.Element;
+} {
+  const Context = React.createContext<StyleProvider>(null);
+
+  class StyleProvider extends Component<StyleProviderPropsType> {
+    static defaultProps = {
+      init_stylis_cache: {},
+      class_name_generator: (css: string) =>
+        Math.random()
+          .toString(32)
+          .slice(2)
+    };
+
+    stylis_cache = { ...this.props.init_stylis_cache };
+    stylis = (css: string) => {
+      if (!this.stylis_cache[css]) {
+        const class_name = "s_" + this.props.class_name_generator(css);
+        this.stylis_cache[css] = {
+          class_name,
+          style_html: stylis("." + class_name, css)
+        };
+      }
+      return this.stylis_cache[css];
+    };
+
+    rendered_by = {};
+    set = (key, value) => {
+      this.rendered_by[key] = value;
+    };
+    get = key => {
+      return this.rendered_by[key];
+    };
+    del = key => {
+      delete this.rendered_by[key];
+      this.forceUpdate();
+    };
+
+    render() {
+      const { props, ...without_props } = this as any;
+      return (
+        <Context.Provider value={without_props}>
+          {this.props.children}
+        </Context.Provider>
+      );
     }
-    return cache[css];
   }
 
-  let style_instance_id = 1;
+  let STYLE_INSTANCE_ID = 1;
+
   class Style extends Component<{
     css: string;
-    who_rendered_style: any;
+    provider: StyleProvider;
     children: (css: string) => ReactNode;
   }> {
-    instance_id = style_instance_id++;
-    provider_state = null;
+    instance_id = STYLE_INSTANCE_ID++;
+
     componentWillUnmount() {
-      const { css, children, who_rendered_style } = this.props;
-      const instance_id = who_rendered_style.get(css);
+      const { css, children, provider } = this.props;
+      const instance_id = provider.get(css);
       if (instance_id === this.instance_id) {
-        who_rendered_style.del(css);
+        provider.del(css);
       }
     }
+
     render() {
-      const { css, children, who_rendered_style } = this.props;
-      const { className, style_html } = cache_stylis(css);
-      let instance_id = who_rendered_style.get(css);
+      const { css, children, provider } = this.props;
+      const { class_name, style_html } = provider.stylis(css);
+      let instance_id = provider.get(css);
       if (!instance_id) {
-        who_rendered_style.set(css, this.instance_id);
+        provider.set(css, this.instance_id);
         instance_id = this.instance_id;
       }
       return (
@@ -67,13 +115,20 @@ function createStyle(
           {instance_id === this.instance_id && (
             <style dangerouslySetInnerHTML={{ __html: style_html }} />
           )}
-          {children(className)}
+          {children(class_name)}
         </Fragment>
       );
     }
   }
 
-  return WhoRenderedStyle.hoc("who_rendered_style")(Style);
-}
+  const StyleConsumer = (props: StyleConsumerPropsType) => (
+    <Context.Consumer>
+      {provider => <Style {...{ ...props, provider }} />}
+    </Context.Consumer>
+  );
 
-export { createStyle };
+  return {
+    Provider: StyleProvider,
+    Consumer: StyleConsumer
+  };
+}

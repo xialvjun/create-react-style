@@ -1,4 +1,4 @@
-# create-react-context
+# create-react-style
 An easy way of css-in-js: render style tag in render-props.
 
 ## Install
@@ -6,43 +6,54 @@ An easy way of css-in-js: render style tag in render-props.
 
 ## Example
 ```jsx
-import { createStyle } from '@xialvjun/create-react-style';
+import { Style, createStyle } from '@xialvjun/create-react-style';
+import {
+  hash_class_name_generator,
+  random_class_name_generator
+} from "@xialvjun/create-react-style/class_name_generator";
 
-const Style = createStyle();
+const stable_class_name_for_ssr = (
+  <Style.Provider class_name_generator={hash_class_name_generator} />
+);
+const random_class_name = (
+  <Style.Provider class_name_generator={random_class_name_generator} />
+);
 
 const app = (
-  <div>
-    <Style
-      css={`
-        display: flex;
-        background: yellow;
-        .abc {
-          color: blue;
-        }
-      `}
-    >
-      {className => (
-        <div className={className}>
-          <div className="abc">abcabc</div>
-        </div>
-      )}
-    </Style>
-    <Style
-      css={`
-        display: flex;
-        background: yellow;
-        .abc {
-          color: blue;
-        }
-      `}
-    >
-      {className => (
-        <div className={className}>
-          <div className="abc">abcabc</div>
-        </div>
-      )}
-    </Style>
-  </div>
+  <Style.Provider>
+    <div>
+      <Style.Consumer
+        css={`
+          display: flex;
+          background: yellow;
+          .abc {
+            color: blue;
+          }
+        `}
+      >
+        {className => (
+          <div className={className}>
+            <div className="abc">abcabc</div>
+          </div>
+        )}
+      </Style.Consumer>
+      <Style.Consumer
+        css={`
+          display: flex;
+          background: yellow;
+          .abc {
+            color: blue;
+          }
+        `}
+      >
+        {className => (
+          <div className={className}>
+            <div className="abc">abcabc</div>
+          </div>
+        )}
+      </Style.Consumer>
+    </div>
+  </Style.Provider>
 );
 
 app ===
@@ -68,6 +79,9 @@ app ===
       </div>
     </div>
   );
+
+const AnotherStyle = createStyle();
+const { Provider: AProvider, Consumer: AConsumer } = AnotherStyle;
 ```
 
 # TODO
