@@ -1,9 +1,9 @@
 {
   "name": "@xialvjun/create-react-style",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "An easy way of css-in-js: render style tag in render-props.",
   "repository": "github:xialvjun/create-react-style",
-  "keywords": ["react", "css-in-js", "ssr"],
+  "keywords": ["react", "css-in-js", "ssr", "style"],
   "----------------": "----------------",
   "peerDependencies": {
     "react": "^16.3.2"

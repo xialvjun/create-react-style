@@ -76,9 +76,9 @@ export function createStyle(): {
     };
 
     render() {
-      const { props, ...without_props } = this as any;
+      const new_this = { ...this as any };
       return (
-        <Context.Provider value={without_props}>
+        <Context.Provider value={new_this}>
           {this.props.children}
         </Context.Provider>
       );
@@ -94,8 +94,18 @@ export function createStyle(): {
   }> {
     instance_id = STYLE_INSTANCE_ID++;
 
+    componentWillReceiveProps(nextProps) {
+      const { css, provider } = this.props;
+      if (css !== nextProps.css) {
+        const instance_id = provider.get(css);
+        if (instance_id === this.instance_id) {
+          provider.del(css);
+        }
+      }
+    }
+
     componentWillUnmount() {
-      const { css, children, provider } = this.props;
+      const { css, provider } = this.props;
       const instance_id = provider.get(css);
       if (instance_id === this.instance_id) {
         provider.del(css);
