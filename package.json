@@ -1,9 +1,15 @@
 {
   "name": "@xialvjun/create-react-style",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "An easy way of css-in-js: render style tag in render-props.",
   "repository": "github:xialvjun/create-react-style",
-  "keywords": ["react", "css-in-js", "ssr", "style"],
+  "keywords": [
+    "react",
+    "css-in-js",
+    "ssr",
+    "style",
+    "babel-plugin-macros"
+  ],
   "----------------": "----------------",
   "peerDependencies": {
     "react": "^16.3.2"
@@ -11,20 +17,27 @@
   "devDependencies": {
     "@types/react": "^16.3.14",
     "babel-cli": "^6.26.0",
-    "babel-plugin-macros": "^2.2.1",
     "babel-preset-react-app": "^3.1.1",
     "rimraf": "^2.6.2",
     "typescript": "^2.9.1"
   },
   "dependencies": {
     "@emotion/hash": "^0.6.3",
+    "babel-plugin-macros": "^2.2.1",
     "stylis": "^3.5.0"
   },
   "================": "================",
   "author": "xialvjun@live.com",
   "license": "MIT",
   "++++++++++++++++": "++++++++++++++++",
-  "files": ["src/", "es/", "lib/", "dist/", "types/", "macro.js"],
+  "files": [
+    "src/",
+    "es/",
+    "lib/",
+    "dist/",
+    "types/",
+    "macro.js"
+  ],
   "-esnext": "esnext_source_code_not_ts",
   "module": "es/index.js",
   "main": "lib/index.js",
@@ -33,13 +46,11 @@
   "types": "types/index.d.ts",
   "################": "################",
   "scripts": {
-    "build":
-      "npm run build:es && npm run build:lib && npm run build:dist && npm run build:types",
+    "build": "npm run build:es && npm run build:lib && npm run build:dist && npm run build:types",
     "build:es": "rimraf -r es && tsc --outDir es --module es6",
     "build:lib": "rimraf -r lib && tsc --outDir lib --module commonjs",
     "build:dist": "rimraf -r dist && echo not_implemented",
-    "build:types":
-      "rimraf -r types && tsc --outDir types --declaration --emitDeclarationOnly",
+    "build:types": "rimraf -r types && tsc --outDir types --declaration --emitDeclarationOnly",
     "test": "echo \"Error: no test specified\" && exit 1"
   }
 }

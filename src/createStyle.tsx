@@ -76,7 +76,7 @@ export function createStyle(): {
     };
 
     render() {
-      const new_this = { ...this as any };
+      const new_this = { ...(this as any) };
       return (
         <Context.Provider value={new_this}>
           {this.props.children}

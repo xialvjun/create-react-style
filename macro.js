@@ -1,64 +1,46 @@
-// import { createMacro } from 'babel-plugin-macros'
-
-// export default createMacro(macro);
-
-// function macro({ references, state, babel: { types: t } }) {
-//   console.log(arguments);
-//   throw 'macro error';
-// }
 const { createMacro, MacroError } = require("babel-plugin-macros");
-const fs = require("fs");
-const path = require("path");
-// `createMacro` is simply a function that ensures your macro is only
-// called in the context of a babel transpilation and will throw an
-// error with a helpful message if someone does not have babel-plugin-macros
-// configured correctly
-module.exports = createMacro(myMacro);
+const { minify: emotion_minify } = require("./lib/minify");
 
+const minify = (() => {
+  const cache = {};
+  return (css, is_head, is_tail) => {
+    const key = css + is_head + is_tail;
+    if (cache[key]) {
+      return cache[key];
+    }
+    let minified = emotion_minify(css);
+    if (is_head) {
+      minified = minified.replace(/^\s*/, "");
+    } else if (!!css.match(/^\s+/)) {
+      minified = minified.replace(/^\s*/, " ");
+    }
+    if (is_tail) {
+      minified = minified.replace(/\s*$/, "");
+    } else if (!!css.match(/\s+$/)) {
+      minified = minified.replace(/\s*$/, " ");
+    }
+    cache[key] = minified;
+    return minified;
+  };
+})();
 
-function myMacro({ references, state, babel }) {
-  // state is the second argument you're passed to a visitor in a
-  // normal babel plugin. `babel` is the `babel-plugin-macros` module.
-  // do whatever you like to the AST paths you find in `references`
-  // read more below...
-  // fs.writeFileSync(path.join(__dirname, '../macrot.txt'), JSON.stringify({references, state, babel}), { encoding: 'utf-8' })
-  console.log(12312421);
-  console.log(12312421);
-  console.log(12312421);
-  console.log(references);
-  console.log(12312421);
-  console.log(12312421);
-  console.log(12312421);
-  throw new MacroError("asdfsdf");
-  // const args = arguments;
-  // setTimeout(() => {
-  //   console.log(args);
-  // }, 10000);
+const is_production = process.env.NODE_ENV === "production";
 
-  // // throw 'macro error';
+function macro({ references, state, babel }) {
+  const t = babel.types;
+  references.default.forEach(Identifier => {
+    const TaggedTemplateExpression = Identifier.parentPath;
+    const clone = TaggedTemplateExpression.node.quasi.__clone();
+    if (is_production) {
+      const length = clone.quasis.length;
+      clone.quasis.forEach((it, idx) => {
+        const minified = minify(it.value.raw, idx === 0, idx + 1 === length);
+        it.value.raw = minified;
+        it.value.cooked = minified;
+      });
+    }
+    TaggedTemplateExpression.replaceWith(clone);
+  });
 }
 
-
-// const symbolRegex = /(\s*[;:{},]\s*)/g;
-
-// // Counts occurences of substr inside str
-// const countOccurences = (str, substr) => str.split(substr).length - 1;
-
-// export const minify = code => {
-//   code.split(symbolRegex).reduce((str, fragment, index) => {
-//     // Even-indices are non-symbol fragments
-//     if (index % 2 === 0) {
-//       return str + fragment;
-//     }
-
-//     // Only manipulate symbols outside of strings
-//     if (
-//       countOccurences(str, "'") % 2 === 0 &&
-//       countOccurences(str, '"') % 2 === 0
-//     ) {
-//       return str + fragment.trim();
-//     }
-
-//     return str + fragment;
-//   }, "");
-// };
+module.exports = createMacro(macro);
