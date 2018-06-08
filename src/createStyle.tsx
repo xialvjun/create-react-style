@@ -7,7 +7,6 @@ export interface StyleProviderPropsType {
     string,
     { class_name: string; style_html: string }
   >;
-  class_name_generator?: (css: string) => string;
   children?: ReactNode;
 }
 
@@ -43,18 +42,14 @@ export function createStyle(): {
   const Context = React.createContext<StyleProvider>(null);
 
   class StyleProvider extends Component<StyleProviderPropsType> {
-    static defaultProps = {
-      init_stylis_cache: {},
-      class_name_generator: (css: string) =>
-        Math.random()
-          .toString(32)
-          .slice(2)
-    };
-
-    stylis_cache = { ...this.props.init_stylis_cache };
+    stylis_cache = this.props.init_stylis_cache || {};
     stylis = (css: string) => {
       if (!this.stylis_cache[css]) {
-        const class_name = "s_" + this.props.class_name_generator(css);
+        const class_name =
+          "s_" +
+          Math.random()
+            .toString(32)
+            .slice(2);
         this.stylis_cache[css] = {
           class_name,
           style_html: stylis("." + class_name, css)

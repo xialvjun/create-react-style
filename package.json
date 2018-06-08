@@ -1,6 +1,6 @@
 {
   "name": "@xialvjun/create-react-style",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "An easy way of css-in-js: render style tag in render-props.",
   "repository": "github:xialvjun/create-react-style",
   "keywords": [
@@ -22,7 +22,6 @@
     "typescript": "^2.9.1"
   },
   "dependencies": {
-    "@emotion/hash": "^0.6.3",
     "babel-plugin-macros": "^2.2.1",
     "stylis": "^3.5.0"
   },

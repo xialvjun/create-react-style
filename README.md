@@ -33,23 +33,55 @@ const abc = `display:flex;.abc{background:red;}`
 https://codesandbox.io/s/5w8wqonrpk
 
 ```jsx
+import * as React from "react";
+
 import { Style, createStyle } from "@xialvjun/create-react-style";
 // babel-plugin-macros
 import minify from "@xialvjun/create-react-style/macro";
-import {
-  hash_class_name_generator,
-  random_class_name_generator
-} from "@xialvjun/create-react-style/class_name_generator";
 
-const stable_class_name_for_ssr = (
-  <Style.Provider class_name_generator={hash_class_name_generator} />
-);
-const random_class_name = (
-  <Style.Provider class_name_generator={random_class_name_generator} />
-);
+const SSR_STYLIS_CACHE = {};
+const for_ssr = <Style.Provider init_stylis_cache={SSR_STYLIS_CACHE} />;
+`(window as any).__SSR_STYLIS_CACHE = JSON.stringify(SSR_STYLIS_CACHE);`;
+// in client
+<Style.Provider
+  init_stylis_cache={JSON.parse((window as any).__SSR_STYLIS_CACHE)}
+/>;
 
 const app = (
   <Style.Provider>
+    <div>
+      <p>global style 1: (it has no stylis prefix features)</p>
+      <style
+        dangerouslySetInnerHTML={{
+          __html: minify`
+          .abc {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          body {
+            height: 100vh;
+          }`
+        }}
+      />
+    </div>
+    <div>
+      <p>global style 2:</p>
+      <Style.Consumer
+        css={minify`
+        :global(.abc) {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        :global(body) {
+          height: 100vh;
+        }
+      `}
+      >
+        {_ => null}
+      </Style.Consumer>
+    </div>
     <div>
       <Style.Consumer
         css={minify`
