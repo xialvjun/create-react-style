@@ -15,7 +15,7 @@ const for_ssr = <Style.Provider init_stylis_cache={SSR_STYLIS_CACHE} />;
 const app = (
   <Style.Provider>
     <div>
-      <p>global style 1: (it has no stylis features)</p>
+      <p>global style 1: (it has no stylis features and deduplicate feature)</p>
       <style
         dangerouslySetInnerHTML={{
           __html: minify`
