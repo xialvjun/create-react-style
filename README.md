@@ -144,3 +144,9 @@ app ===
 const AnotherStyle = createStyle();
 const { Provider: AProvider, Consumer: AConsumer } = AnotherStyle;
 ```
+
+## Caveats
+
+You'd better use `Child selectors` rather than `Descendant selectors`.  
+Because `.s_abc .header .title` has more priority than `.s_def .title` if element with `.s_def` is contained in element with `.s_abc`.  
+Change https://codesandbox.io/s/5w8wqonrpk line 57 `const test_bug = false;` to `const test_bug = true;`, you'll find the problem.
