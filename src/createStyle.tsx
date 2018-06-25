@@ -8,6 +8,7 @@ export interface StyleProviderPropsType {
     { class_name: string; style_html: string }
   >;
   children?: ReactNode;
+  render_style?: (html: string) => ReactNode;
 }
 
 export interface StyleProviderComponentClass
@@ -16,6 +17,7 @@ export interface StyleProviderComponentClass
     StyleProviderPropsType,
     {}
   > & {
+    render_style: (html: string) => ReactNode;
     stylis_cache: Record<string, { class_name: string; style_html: string }>;
     stylis: (
       css: string
@@ -35,6 +37,16 @@ export interface StyleConsumerPropsType {
   children: (class_name: string) => React.ReactNode;
 }
 
+/**
+ * 可以提供 props.render_style ，从而
+ * {instance_id === this.instance_id && <style dangerouslySetInnerHTML={{ __html: style_html }} />}
+ * 换为
+ * const render_style = props.render_style || (html => <style dangerouslySetInnerHTML={{ __html: html }} />);
+ * {instance_id === this.instance_id && render_style(html)}
+ * 于是，用户通过提供 props.render_style 来渲染他们自定义的组件，组件中有副作用去修改 style，从而达到在不同的平台使用的目的
+ * 。。。不过目前在 微信小程序 和 ReactNative 都不行。微信小程序没有提供修改 style 的功能，ReactNative 用的 inline style
+ */
+
 export function createStyle(): {
   Provider: StyleProviderComponentClass;
   Consumer: (props: StyleConsumerPropsType) => JSX.Element;
@@ -42,6 +54,10 @@ export function createStyle(): {
   const Context = React.createContext<StyleProvider>(null);
 
   class StyleProvider extends Component<StyleProviderPropsType> {
+    render_style =
+      this.props.render_style ||
+      (html => <style dangerouslySetInnerHTML={{ __html: html }} />);
+
     stylis_cache = this.props.init_stylis_cache || {};
     stylis = (css: string) => {
       if (!this.stylis_cache[css]) {
@@ -117,9 +133,8 @@ export function createStyle(): {
       }
       return (
         <Fragment>
-          {instance_id === this.instance_id && (
-            <style dangerouslySetInnerHTML={{ __html: style_html }} />
-          )}
+          {instance_id === this.instance_id &&
+            provider.render_style(style_html)}
           {children(class_name)}
         </Fragment>
       );
