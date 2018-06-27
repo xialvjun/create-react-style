@@ -1,10 +1,87 @@
 # create-react-style
 
-An easy way of css-in-js: render style tag in render-props.
+An easy way of css-in-js: render style tag in render-props in runtime.
 
 ## Install
 
 `npm i @xialvjun/create-react-style` or `yarn add @xialvjun/create-react-style`
+
+## Example
+
+https://codesandbox.io/s/5w8wqonrpk
+
+```tsx
+import * as React from "react";
+import { Style, createStyle } from "@xialvjun/create-react-style";
+import minify from "@xialvjun/create-react-style/macro";
+
+const ff7 = [
+  { name: "tifa", attack: 965, hp: 2985 },
+  { name: "cloud", attack: 893, hp: 3763 },
+  { name: "alice", attack: 676, hp: 3125 }
+];
+
+const app = (
+  <div>
+    <Style.Provider>
+      {ff7.map(p => (
+        <Style.Consumer
+          key={p.name}
+          css={minify`
+          display: flex;
+          align-items: center;
+          & > h4 {
+            margin: 0 10px;
+            flex: auto;
+          }
+          `}
+        >
+          {cn => (
+            <div className={cn}>
+              <h2>{p.name}</h2>
+              <h4>{p.hp}</h4>
+              <p>{p.attack}</p>
+            </div>
+          )}
+        </Style.Consumer>
+      ))}
+    </Style.Provider>
+  </div>
+);
+
+const app_will_render_to = (
+  <div>
+    <style
+      dangerouslySetInnerHTML={{
+        __html: minify`
+        .yuqw6123ba {
+          display: -webkit-box;
+          display: -webkit-flex;
+          display: -ms-flexbox;
+          display: flex;
+          -webkit-align-items: center;
+          -webkit-box-align: center;
+          -ms-flex-align: center;
+          align-items: center;
+        }
+        .yuqw6123ba > h4 {
+          margin: 0 10px;
+          -webkit-flex: auto;
+          -ms-flex: auto;
+          flex: auto;
+        }`
+      }}
+    />
+    {ff7.map(p => (
+      <div key={p.name} className="yuqw6123ba">
+        <h2>{p.name}</h2>
+        <h4>{p.hp}</h4>
+        <p>{p.attack}</p>
+      </div>
+    ))}
+  </div>
+);
+```
 
 ## Macro
 
@@ -16,7 +93,8 @@ An easy way of css-in-js: render style tag in render-props.
 
 // component.js
 import minify from '@xialvjun/create-react-style/macro';
-// you can also `import css from '@xialvjun/create-react-style/macro';` or whatever, but you can not `const css = minify;`
+// you can also `import css from '@xialvjun/create-react-style/macro';` or whatever
+// but you can not assign this macro to another variable
 const abc = minify`
   display: flex;
   .abc {
@@ -28,119 +106,149 @@ const abc = minify`
 const abc = `display:flex;.abc{background:red;}`
 ```
 
-## Example
+## Documents
 
-https://codesandbox.io/s/5w8wqonrpk
-
-```jsx
+```tsx
 import * as React from "react";
-
 import { Style, createStyle } from "@xialvjun/create-react-style";
 // babel-plugin-macros
 import minify from "@xialvjun/create-react-style/macro";
+// minify is just a babel macro to minify the css template string. You can use or not use it.
+// import `minify`, `mini`, `macro` or `whatever` from "../macro" as long as it is import default.
 
-const SSR_STYLIS_CACHE = {};
-const for_ssr = <Style.Provider init_stylis_cache={SSR_STYLIS_CACHE} />;
-`(window as any).__SSR_STYLIS_CACHE = JSON.stringify(SSR_STYLIS_CACHE);`;
-// in client
-<Style.Provider
-  init_stylis_cache={JSON.parse((window as any).__SSR_STYLIS_CACHE)}
-/>;
+const ff7 = [
+  { name: "tifa", attack: 965, hp: 2985 },
+  { name: "cloud", attack: 893, hp: 3763 },
+  { name: "alice", attack: 676, hp: 3125 }
+];
 
 const app = (
-  <Style.Provider>
-    <div>
-      <p>global style 1: (it has no stylis features and deduplicate feature)</p>
-      <style
-        dangerouslySetInnerHTML={{
-          __html: minify`
-          .abc {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-          }
-          body {
-            height: 100vh;
-          }`
-        }}
-      />
-    </div>
-    <div>
-      <p>global style 2:</p>
-      <Style.Consumer
-        css={minify`
-        :global(.abc) {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-        }
-        :global(body) {
-          height: 100vh;
-        }
-      `}
-      >
-        {_ => null}
-      </Style.Consumer>
-    </div>
-    <div>
-      <Style.Consumer
-        css={minify`
+  <div>
+    <Style.Provider>
+      {ff7.map(p => (
+        <Style.Consumer
+          key={p.name}
+          css={minify`
           display: flex;
-          background: yellow;
-          .abc {
-            color: blue;
+          align-items: center;
+          & > h4 {
+            margin: 0 10px;
+            flex: auto;
           }
-        `}
-      >
-        {className => (
-          <div className={className}>
-            <div className="abc">abcabc</div>
-          </div>
-        )}
-      </Style.Consumer>
-      <Style.Consumer
-        css={minify`
+          `}
+        >
+          {cn => (
+            <div className={cn}>
+              <h2>{p.name}</h2>
+              <h4>{p.hp}</h4>
+              <p>{p.attack}</p>
+            </div>
+          )}
+        </Style.Consumer>
+      ))}
+    </Style.Provider>
+  </div>
+);
+
+const app_will_render_to = (
+  <div>
+    <style
+      dangerouslySetInnerHTML={{
+        __html: minify`
+        .yuqw6123ba {
+          display: -webkit-box;
+          display: -webkit-flex;
+          display: -ms-flexbox;
           display: flex;
-          background: yellow;
-          .abc {
-            color: blue;
-          }
-        `}
-      >
-        {className => (
-          <div className={className}>
-            <div className="abc">abcabc</div>
-          </div>
-        )}
-      </Style.Consumer>
-    </div>
+          -webkit-align-items: center;
+          -webkit-box-align: center;
+          -ms-flex-align: center;
+          align-items: center;
+        }
+        .yuqw6123ba > h4 {
+          margin: 0 10px;
+          -webkit-flex: auto;
+          -ms-flex: auto;
+          flex: auto;
+        }`
+      }}
+    />
+    {ff7.map(p => (
+      <div key={p.name} className="yuqw6123ba">
+        <h2>{p.name}</h2>
+        <h4>{p.hp}</h4>
+        <p>{p.attack}</p>
+      </div>
+    ))}
+  </div>
+);
+
+// global style:
+// global style method 1: it has no stylis features and deduplicate feature
+const global_style_1 = (
+  <style
+    dangerouslySetInnerHTML={{
+      __html: minify`
+      .abc {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      .abc .def {
+        background: #999;
+      }
+      body {
+        height: 100vh;
+      }`
+    }}
+  />
+);
+
+// global style method 2:
+const global_style_2 = (
+  <Style.Consumer
+    css={minify`
+    :global(.abc) {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      // this method has stylis feature
+      .def {
+        background: #999;
+      }
+    }
+    :global(body) {
+      height: 100vh;
+    }`}
+  >
+    {_ => null}
+  </Style.Consumer>
+);
+
+// Server Side Rendering
+const SSR_STYLIS_CACHE = {};
+const in_server = (
+  <Style.Provider init_stylis_cache={SSR_STYLIS_CACHE}>XXX</Style.Provider>
+);
+const SSR_STYLIS_CACHE_JSON = JSON.stringify(SSR_STYLIS_CACHE);
+const html = `window.SSR_STYLIS_CACHE_JSON = '${SSR_STYLIS_CACHE_JSON}';`;
+const in_client = (
+  <Style.Provider init_stylis_cache={JSON.parse(SSR_STYLIS_CACHE_JSON)}>
+    XXX
   </Style.Provider>
 );
 
-app ===
-  (
-    <div>
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-    .yuqw6123ba {
-      display: flex;
-      background: yellow;
-    }
-    .yuqw6123ba .abc {
-      color: blue;
-    }`
-        }}
-      />
-      <div className={"yuqw6123ba"}>
-        <div className="abc">abcabc</div>
-      </div>
-      <div className={"yuqw6123ba"}>
-        <div className="abc">abcabc</div>
-      </div>
-    </div>
-  );
+// Other Platform
+// You can offer custom render_style Component. In that Component, you can do side effect to change your platform StyleSheet
+const other_platform = (
+  <Style.Provider
+    render_style={__html => <style dangerouslySetInnerHTML={{ __html }} />}
+  >
+    XXX
+  </Style.Provider>
+);
 
+// it's not global, so you can split into two style Provider, even though I havn't see the usage.
 const AnotherStyle = createStyle();
 const { Provider: AProvider, Consumer: AConsumer } = AnotherStyle;
 ```
