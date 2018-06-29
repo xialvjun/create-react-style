@@ -110,7 +110,7 @@ const abc = `display:flex;.abc{background:red;}`
 
 ```tsx
 import * as React from "react";
-import { Style, createStyle } from "@xialvjun/create-react-style";
+import { Style, createStyle, createInlineStyle } from "@xialvjun/create-react-style";
 // babel-plugin-macros
 import minify from "@xialvjun/create-react-style/macro";
 // minify is just a babel macro to minify the css template string. You can use or not use it.
@@ -251,6 +251,24 @@ const other_platform = (
 // it's not global, so you can split into two style Provider, even though I havn't see the usage.
 const AnotherStyle = createStyle();
 const { Provider: AProvider, Consumer: AConsumer } = AnotherStyle;
+
+// inline style
+const ISC = createInlineStyle(Style.Consumer);
+const inline_style = (
+  <ISC.div style="display:grid">
+    <ISC.div style="grid-column:1/2;grid-row:1/3">
+      <ISC.div style="display:grid">
+        <ISC.div style="grid-column:1/2;grid-row:1/3">1</ISC.div>
+        <ISC.div style="grid-column:2/3;grid-row:1/2">2</ISC.div>
+        <ISC.span style="grid-column:2/3;grid-row:2/3">3</ISC.span>
+        <ISC.p style="grid-column:1/3;grid-row:2/3">4</ISC.p>
+      </ISC.div>
+    </ISC.div>
+    <ISC.div style="grid-column:2/3;grid-row:1/2">5</ISC.div>
+    <ISC.div style="grid-column:2/3;grid-row:2/3">6</ISC.div>
+    <ISC.div style="grid-column:1/3;grid-row:2/3">7</ISC.div>
+  </ISC.div>
+);
 ```
 
 ## Caveats
