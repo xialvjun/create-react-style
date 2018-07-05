@@ -1,31 +1,25 @@
 import * as React from "react";
-import { StyleConsumerPropsType } from "./createStyle";
+import { createStyle } from "./createStyle";
 
 export function createInlineStyle(
-  Consumer: (props: StyleConsumerPropsType) => JSX.Element
-) {
-  return new Proxy<any>(
-    {},
-    {
-      get(target, p, receiver) {
-        const Tag = p.toString();
-        let ISC = target[p];
-        if (ISC) {
-          return ISC;
-        }
-        ISC = ({ style, css, className, ...props }) => (
-          <Consumer css={css || style}>
-            {cn => (
-              <Tag
-                {...props}
-                className={className ? className + " " + cn : cn}
-              />
-            )}
-          </Consumer>
-        );
-        target[p] = ISC;
+  Style: ReturnType<typeof createStyle>
+): typeof Style & React.ReactDOM {
+  return new Proxy<any>(Style, {
+    get(target, p, receiver) {
+      const Tag = p.toString();
+      let ISC = target[p];
+      if (ISC) {
         return ISC;
       }
+      ISC = ({ css, style, "inline-css": inlineCss, className, ...props }) => (
+        <Style.Consumer css={css || style || inlineCss}>
+          {cn => (
+            <Tag {...props} className={className ? className + " " + cn : cn} />
+          )}
+        </Style.Consumer>
+      );
+      target[p] = ISC;
+      return ISC;
     }
-  );
+  });
 }

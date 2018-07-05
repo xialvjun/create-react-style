@@ -254,10 +254,11 @@ const { Provider: AProvider, Consumer: AConsumer } = AnotherStyle;
 
 // inline style
 const ISC = createInlineStyle(Style.Consumer);
+// both the 3 prop names are ok: css, style, inline-css. And the priority is as this.
 const inline_style = (
-  <ISC.div style="display:grid">
+  <ISC.div css="display:grid">
     <ISC.div style="grid-column:1/2;grid-row:1/3">
-      <ISC.div style="display:grid">
+      <ISC.div inline-css="display:grid">
         <ISC.div style="grid-column:1/2;grid-row:1/3">1</ISC.div>
         <ISC.div style="grid-column:2/3;grid-row:1/2">2</ISC.div>
         <ISC.span style="grid-column:2/3;grid-row:2/3">3</ISC.span>
