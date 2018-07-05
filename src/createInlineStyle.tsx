@@ -13,8 +13,8 @@ export function createInlineStyle(
         if (ISC) {
           return ISC;
         }
-        ISC = ({ style, className, ...props }) => (
-          <Consumer css={style}>
+        ISC = ({ style, css, className, ...props }) => (
+          <Consumer css={css || style}>
             {cn => (
               <Tag
                 {...props}
