@@ -11,13 +11,13 @@ export function createInlineStyle(
       if (ISC) {
         return ISC;
       }
-      ISC = ({ css, style, "inline-css": inlineCss, className, ...props }) => (
-        <Style.Consumer css={css || style || inlineCss}>
+      ISC = React.forwardRef(({ css, style, "inline-css": inlineCss, className, ...props }, ref) => (
+        <Style.Consumer css={css || style || inlineCss || ""}>
           {cn => (
-            <Tag {...props} className={className ? className + " " + cn : cn} />
+            <Tag {...props} ref={ref} className={className ? className + " " + cn : cn} />
           )}
         </Style.Consumer>
-      );
+      ));
       target[p] = ISC;
       return ISC;
     }
