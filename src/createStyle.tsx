@@ -1,154 +1,128 @@
 import * as stylis from "stylis";
 import * as React from "react";
-import { Fragment, Component, ReactNode, ComponentClass } from "react";
+import { createContext, createRef, Component, Fragment } from "react";
+import { ComponentClass, RefObject, ReactNode, SFC } from "react";
 
-export interface StyleProviderPropsType {
-  init_stylis_cache?: Record<
-    string,
-    { class_name: string; style_html: string }
-  >;
-  children?: ReactNode;
-  render_style?: (html: string) => ReactNode;
+class Lazy extends Component<{ children: () => ReactNode }> {
+  render() {
+    return this.props.children();
+  }
 }
 
-export interface StyleProviderComponentClass
-  extends ComponentClass<StyleProviderPropsType> {
-  new (props: StyleProviderPropsType, context?: any): Component<
-    StyleProviderPropsType,
-    {}
-  > & {
-    render_style: (html: string) => ReactNode;
-    stylis_cache: Record<string, { class_name: string; style_html: string }>;
-    stylis: (
-      css: string
-    ) => {
-      class_name: string;
-      style_html: string;
-    };
-    rendered_by: Record<string, string>;
-    set: (key: string, value: string) => void;
-    get: (key: string) => string;
-    del: (key: string) => void;
+function DefaultWebStyleComponent({ html }) {
+  return <style dangerouslySetInnerHTML={{ __html: html }} />;
+}
+
+function random_class_name(obj) {
+  const class_name =
+    "s_" +
+    Math.random()
+      .toString(32)
+      .slice(2);
+  if (obj.hasOwnProperty(class_name)) {
+    return random_class_name(obj);
+  }
+  return class_name;
+}
+
+export interface StyleProviderPropsType {
+  style_component?: ComponentClass<{ html: string }> | SFC<{ html: string }>;
+  init_stylis_cache?: Record<string, { class_name: string; style_html: string; now?: number }>;
+  prune_controller?: (stylis_cache: Record<string, { class_name: string; now?: number; style_html: string }>, prune: () => void) => any;
+  children?: ReactNode;
+}
+
+export interface StyleProviderComponent extends Component<StyleProviderPropsType> {
+  style_component: ComponentClass<{ html: string }> | SFC<{ html: string }>;
+  now: number;
+  stylis_cache: Record<string, { class_name: string; style_html: string; now?: number }>;
+  stylis: (
+    css: string
+  ) => {
+    class_name: string;
+    style_html: string;
+    now?: number;
   };
+  prune_controller: (stylis_cache: Record<string, { class_name: string; now?: number; style_html: string }>, prune: () => void) => any;
+  will_prune: boolean;
+  prune: () => void;
+  lazy_ref: RefObject<Lazy>;
+  render_styles: () => ReactNode;
+}
+
+export interface StyleProviderComponentClass extends ComponentClass<StyleProviderPropsType> {
+  new (props: StyleProviderPropsType, context?: any): Component<StyleProviderPropsType, {}> & StyleProviderComponent;
 }
 
 export interface StyleConsumerPropsType {
   css: string;
-  children: (class_name: string) => React.ReactNode;
+  children: (class_name: string) => ReactNode;
 }
 
-/**
- * 可以提供 props.render_style ，从而
- * {instance_id === this.instance_id && <style dangerouslySetInnerHTML={{ __html: style_html }} />}
- * 换为
- * const render_style = props.render_style || (html => <style dangerouslySetInnerHTML={{ __html: html }} />);
- * {instance_id === this.instance_id && render_style(html)}
- * 于是，用户通过提供 props.render_style 来渲染他们自定义的组件，组件中有副作用去修改 style，从而达到在不同的平台使用的目的
- * 。。。不过目前在 微信小程序 和 ReactNative 都不行。微信小程序没有提供修改 style 的功能，ReactNative 用的 inline style
- */
+export function createStyle() {
+  const Context = createContext<StyleProviderComponent>(null);
 
-export function createStyle(): {
-  Provider: StyleProviderComponentClass;
-  Consumer: (props: StyleConsumerPropsType) => JSX.Element;
-} {
-  const Context = React.createContext<StyleProvider>(null);
+  class Provider extends Component<StyleProviderPropsType> {
+    style_component = this.props.style_component || DefaultWebStyleComponent;
 
-  class StyleProvider extends Component<StyleProviderPropsType> {
-    render_style =
-      this.props.render_style ||
-      (html => <style dangerouslySetInnerHTML={{ __html: html }} />);
-
-    stylis_cache = this.props.init_stylis_cache || {};
+    now = Date.now();
+    stylis_cache = { ...this.props.init_stylis_cache };
     stylis = (css: string) => {
       if (!this.stylis_cache[css]) {
-        const class_name =
-          "s_" +
-          Math.random()
-            .toString(32)
-            .slice(2);
+        this.lazy_ref.current.forceUpdate();
+        const class_name = random_class_name(this.stylis_cache);
         this.stylis_cache[css] = {
           class_name,
           style_html: stylis("." + class_name, css)
         };
+        this.prune_controller(this.stylis_cache, this.prune);
       }
+      this.stylis_cache[css].now = this.now;
       return this.stylis_cache[css];
     };
 
-    rendered_by = {};
-    set = (key, value) => {
-      this.rendered_by[key] = value;
+    prune_controller = this.props.prune_controller || (_ => _);
+    will_prune = false;
+    prune = () => {
+      if (!this.will_prune) {
+        this.will_prune = true;
+        this.now = Date.now();
+        this.forceUpdate(() => {
+          this.will_prune = false;
+          const to_remove_css = Object.keys(this.stylis_cache).filter(css => this.stylis_cache[css].now !== this.now);
+          if (to_remove_css.length > 0) {
+            to_remove_css.forEach(css => delete this.stylis_cache[css]);
+            this.lazy_ref.current.forceUpdate();
+          }
+        });
+      }
     };
-    get = key => {
-      return this.rendered_by[key];
-    };
-    del = key => {
-      delete this.rendered_by[key];
-      this.forceUpdate();
+
+    lazy_ref = createRef<Lazy>();
+    render_styles = () => {
+      const StyleComponent: any = this.style_component;
+      return (
+        <Fragment>
+          {Object.keys(this.stylis_cache).map(css => (
+            <StyleComponent key={this.stylis_cache[css].class_name} html={this.stylis_cache[css].style_html} />
+          ))}
+        </Fragment>
+      );
     };
 
     render() {
-      const new_this = { ...(this as any) };
       return (
-        <Context.Provider value={new_this}>
+        <Context.Provider value={{ ...(this as any) }}>
           {this.props.children}
+          <Lazy ref={this.lazy_ref}>{this.render_styles}</Lazy>
         </Context.Provider>
       );
     }
   }
 
-  let STYLE_INSTANCE_ID = 1;
-
-  class Style extends Component<{
-    css: string;
-    provider: StyleProvider;
-    children: (css: string) => ReactNode;
-  }> {
-    instance_id = STYLE_INSTANCE_ID++;
-
-    componentWillReceiveProps(nextProps) {
-      const { css, provider } = this.props;
-      if (css !== nextProps.css) {
-        const instance_id = provider.get(css);
-        if (instance_id === this.instance_id) {
-          provider.del(css);
-        }
-      }
-    }
-
-    componentWillUnmount() {
-      const { css, provider } = this.props;
-      const instance_id = provider.get(css);
-      if (instance_id === this.instance_id) {
-        provider.del(css);
-      }
-    }
-
-    render() {
-      const { css, children, provider } = this.props;
-      const { class_name, style_html } = provider.stylis(css);
-      let instance_id = provider.get(css);
-      if (!instance_id) {
-        provider.set(css, this.instance_id);
-        instance_id = this.instance_id;
-      }
-      return (
-        <Fragment>
-          {instance_id === this.instance_id &&
-            provider.render_style(style_html)}
-          {children(class_name)}
-        </Fragment>
-      );
-    }
+  function Consumer({ css, children }: StyleConsumerPropsType) {
+    return <Context.Consumer>{provider => children(provider.stylis(css).class_name)}</Context.Consumer>;
   }
 
-  const StyleConsumer = (props: StyleConsumerPropsType) => (
-    <Context.Consumer>
-      {provider => <Style {...{ ...props, provider }} />}
-    </Context.Consumer>
-  );
-
-  return {
-    Provider: StyleProvider,
-    Consumer: StyleConsumer
-  };
+  return { Provider: Provider as StyleProviderComponentClass, Consumer, ContextConsumer: Context.Consumer };
 }

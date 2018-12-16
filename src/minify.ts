@@ -53,10 +53,7 @@ export const compressSymbols = (code: string) =>
     }
 
     // Only manipulate symbols outside of strings
-    if (
-      countOccurences(str, "'") % 2 === 0 &&
-      countOccurences(str, '"') % 2 === 0
-    ) {
+    if (countOccurences(str, "'") % 2 === 0 && countOccurences(str, '"') % 2 === 0) {
       return str + fragment.trim();
     }
 

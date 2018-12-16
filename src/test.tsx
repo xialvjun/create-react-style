@@ -6,11 +6,7 @@ import minify from "../macro";
 // minify is just a babel macro to minify the css template string. You can use or not use it.
 // import `minify`, `mini`, `macro` or `whatever` from "../macro" as long as it is import default.
 
-const ff7 = [
-  { name: "tifa", attack: 965, hp: 2985 },
-  { name: "cloud", attack: 893, hp: 3763 },
-  { name: "alice", attack: 676, hp: 3125 }
-];
+const ff7 = [{ name: "tifa", attack: 965, hp: 2985 }, { name: "cloud", attack: 893, hp: 3763 }, { name: "alice", attack: 676, hp: 3125 }];
 
 const app = (
   <div>
@@ -117,26 +113,15 @@ const global_style_2 = (
 
 // Server Side Rendering
 const SSR_STYLIS_CACHE = {};
-const in_server = (
-  <Style.Provider init_stylis_cache={SSR_STYLIS_CACHE}>XXX</Style.Provider>
-);
+const in_server = <Style.Provider init_stylis_cache={SSR_STYLIS_CACHE}>XXX</Style.Provider>;
 const SSR_STYLIS_CACHE_JSON = JSON.stringify(SSR_STYLIS_CACHE);
 const html = `window.SSR_STYLIS_CACHE_JSON = '${SSR_STYLIS_CACHE_JSON}';`;
-const in_client = (
-  <Style.Provider init_stylis_cache={JSON.parse(SSR_STYLIS_CACHE_JSON)}>
-    XXX
-  </Style.Provider>
-);
+const in_client = <Style.Provider init_stylis_cache={JSON.parse(SSR_STYLIS_CACHE_JSON)}>XXX</Style.Provider>;
 
 // Other Platform
-// You can offer custom render_style Component. In that Component, you can do side effect to change your platform StyleSheet
-const other_platform = (
-  <Style.Provider
-    render_style={__html => <style dangerouslySetInnerHTML={{ __html }} />}
-  >
-    XXX
-  </Style.Provider>
-);
+// You can offer custom style_component Component. In that Component, you can do side effect to change your platform StyleSheet
+const style_component = ({ html }) => <style dangerouslySetInnerHTML={{ __html: html }} />;
+const other_platform = <Style.Provider style_component={style_component}>XXX</Style.Provider>;
 
 // it's not global, so you can split into two style Provider, even though I havn't see the usage.
 const AnotherStyle = createStyle();
@@ -160,3 +145,10 @@ const inline_style = (
     <ISC.div inline-css="grid-column:1/3;grid-row:2/3">7</ISC.div>
   </ISC.div>
 );
+
+// 1. 所有的 style 统一放在 Provider 中渲染，render() 中有 <Lazy>{_ => render_style_cache()}</Lazy>
+// 2. 并不是一个 style 不被使用了就立即把它删掉，而是可以仍然留着
+// 3. Provider 有参数，是一个函数，来清理 style。。。函数接受两个参数，(style_cache, prune) 用户可以传一个 debounced 函数，
+//    在内部判断 style_cache 是否太多，于是运行 prune。。。prune 会导致 Provider forceUpdate 一下，于是所有 Consumer 刷新，把 style_cache 内的时间更新。。。如果不是新时间的，就删除掉
+// 4. 这种机制看似会导致新出现一个 style 的时候，会整个 Provider 都 update，导致整个 app update。。。但可以只是 1 中的 Lazy 去 update
+// 5. 提供一个 ContextConsumer 直接接受 Provider。人们可以使用这个 ContextConsumer 去渲染 <script dangerouslySetInnerHTML={{__html:`${provider.stylis_cache}`}}/>...从而做 SSR，一次渲染，不需要做 stream 操作
