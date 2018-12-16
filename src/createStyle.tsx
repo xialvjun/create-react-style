@@ -69,7 +69,10 @@ export function createStyle() {
     stylis_cache = { ...this.props.init_stylis_cache };
     stylis = (css: string) => {
       if (!this.stylis_cache[css]) {
-        this.lazy_ref.current.forceUpdate();
+        if (!this.will_lazy_ref_update) {
+          this.will_lazy_ref_update = true;
+          Promise.resolve(0).then(_ => this.lazy_ref.current.forceUpdate(() => (this.will_lazy_ref_update = false)));
+        }
         const class_name = random_class_name(this.stylis_cache);
         this.stylis_cache[css] = {
           class_name,
@@ -99,6 +102,7 @@ export function createStyle() {
     };
 
     lazy_ref = createRef<Lazy>();
+    will_lazy_ref_update = false;
     render_styles = () => {
       const StyleComponent: any = this.style_component;
       return (
