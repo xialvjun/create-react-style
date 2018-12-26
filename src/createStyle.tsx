@@ -131,8 +131,8 @@ export function createStyle() {
     render() {
       return (
         <Context.Provider value={{ ...(this as any) }}>
-          <Lazy ref={this.lazy_ref}>{this.render_styles}</Lazy>
           {this.props.children}
+          <Lazy ref={this.lazy_ref}>{this.render_styles}</Lazy>
         </Context.Provider>
       );
     }
