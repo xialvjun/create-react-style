@@ -117,6 +117,9 @@ export function createStyle() {
 
     lazy_ref = createRef<Lazy>();
     will_lazy_ref_update = false;
+    componentDidMount() {
+      this.will_lazy_ref_update = false;
+    }
     render_styles = () => {
       const StyleComponent: any = this.style_component;
       return (
